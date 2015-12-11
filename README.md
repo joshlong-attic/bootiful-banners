@@ -14,6 +14,4 @@ Also, this project provides a REST API that takes image uploads and emits plain-
 curl -F "image=@/my/img.jpg"  -H "Content-Type: multipart/form-data"  bootiful-banners.cfapps.io/banner
 ```
 
-Both projects are [here](https://github.com/joshlong/bootiful-banners) and Apache 2 licensed.
-
 I'M NOT SORRY.
