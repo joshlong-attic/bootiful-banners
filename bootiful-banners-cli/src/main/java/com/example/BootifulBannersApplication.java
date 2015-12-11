@@ -25,7 +25,6 @@ public class BootifulBannersApplication {
                 .logStartupInfo(false)
                 .build()
                 .run(args);
-//        SpringApplication.run(BootifulBannersApplication.class, args);
     }
 }
 
