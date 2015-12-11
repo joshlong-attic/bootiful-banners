@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,6 +13,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.*;
+
+
+/**
+ *
+ * <A href="http://twitter.com/craigburke1">Craig Burke</A> made me do this.
+ *
+ * UGH.
+ *
+ * Supports input and output file or standard in and standard out.
+ *
+ * Usage: {@code ./bootiful-banner.jar -Dbanner.input=.. (-Dbanner.output=..)}
+ *
+ * @author Josh Long
+ */
 
 @SpringBootApplication
 @EnableConfigurationProperties
