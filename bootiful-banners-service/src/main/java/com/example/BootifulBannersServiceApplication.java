@@ -20,6 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.Arrays;
 
+
+/**
+ * I have made so many poor life decisions..
+ *
+ * @author Josh Long
+ */
 @EnableConfigurationProperties
 @SpringBootApplication
 public class BootifulBannersServiceApplication {
@@ -29,7 +35,7 @@ public class BootifulBannersServiceApplication {
     }
 }
 
-//curl -F "image=@/Users/jlong/Desktop/doge.jpg"  -H "Content-Type: multipart/form-data"  http://localhost:8080/banner
+//curl -F "image=@/Users/jlong/Desktop/doge.jpg" -H "Content-Type: multipart/form-data" http://bootiful-banners.cfapps.io/banners
 @RestController
 class BannerGeneratorRestController {
 
@@ -46,7 +52,7 @@ class BannerGeneratorRestController {
             method = RequestMethod.POST,
             produces = MediaType.TEXT_PLAIN_VALUE
     )
-    ResponseEntity<String> banner(@RequestParam ("image") MultipartFile multipartFile) throws Exception {
+    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile) throws Exception {
         File image = null;
         try {
             image = this.imageFileFrom(multipartFile);

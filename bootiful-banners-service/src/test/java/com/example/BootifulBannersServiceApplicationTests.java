@@ -9,6 +9,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @SpringApplicationConfiguration(classes = BootifulBannersServiceApplication.class)
 public class BootifulBannersServiceApplicationTests {
 
+	/**
+	 * ¯\_(ツ)_/¯
+	 */
 	@Test
 	public void contextLoads() {
 	}
