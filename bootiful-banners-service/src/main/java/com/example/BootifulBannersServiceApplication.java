@@ -52,7 +52,8 @@ class BannerGeneratorRestController {
             method = RequestMethod.POST,
             produces = MediaType.TEXT_PLAIN_VALUE
     )
-    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile) throws Exception {
+    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile,
+            @RequestParam(defaultValue = "false") boolean ansiOutput) throws Exception {
         File image = null;
         try {
             image = this.imageFileFrom(multipartFile);
@@ -63,6 +64,28 @@ class BannerGeneratorRestController {
             boolean invert = this.properties.isInvert();
 
             String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
+            if(ansiOutput == true) {
+                banner = banner
+                    .replace("${AnsiColor.DEFAULT}", "\u001B[39m")
+                    .replace("${AnsiColor.BLACK}", "\u001B[30m")
+                    .replace("${AnsiColor.RED}", "\u001B[31m")
+                    .replace("${AnsiColor.GREEN}", "\u001B[32m")
+                    .replace("${AnsiColor.YELLOW}", "\u001B[33m")
+                    .replace("${AnsiColor.BLUE}", "\u001B[34m")
+                    .replace("${AnsiColor.MAGENTA}", "\u001B[35m")
+                    .replace("${AnsiColor.CYAN}", "\u001B[36m")
+                    .replace("${AnsiColor.WHITE}", "\u001B[37m")
+                    .replace("${AnsiColor.BRIGHT_BLACK}", "\u001B[90m")
+                    .replace("${AnsiColor.BRIGHT_RED}", "\u001B[91m")
+                    .replace("${AnsiColor.BRIGHT_GREEN}", "\u001B[92m")
+                    .replace("${AnsiColor.BRIGHT_YELLOW}", "\u001B[93m")
+                    .replace("${AnsiColor.BRIGHT_BLUE}", "\u001B[94m")
+                    .replace("${AnsiColor.BRIGHT_MAGENTA}", "\u001B[95m")
+                    .replace("${AnsiColor.BRIGHT_CYAN}", "\u001B[96m")
+                    .replace("${AnsiColor.BRIGHT_WHITE}", "\u001B[97m")
+                    .replace("${AnsiBackground.BLACK}", "\u001B[40m")
+                    .replace("${AnsiBackground.DEFAULT}", "\u001B[49m");
+            }
 
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
