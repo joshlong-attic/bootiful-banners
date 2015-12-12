@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Spring Initializr</title>
+<link
+	href="//fonts.googleapis.com/css?family=Varela+Round|Montserrat:400,700"
+	rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="//start.spring.io/css/bootstrap.min.css" />
+<link rel="stylesheet"
+	href="//start.spring.io//css/bootstrap-theme.min.css" />
+<link rel="stylesheet" href="//start.spring.io//css/spring.css" />
+<link rel="shortcut icon" type="image/x-icon" href="/img/favicon.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row start-header">
+			<div class="container">
+				<h1>
+					Spring Banners <small>bootstrap your ASCII art now</small>
+				</h1>
+			</div>
+		</div>
+		<br />
+		<div class="container start-main">
+			<div class="row">
+				<form id="form" role="form" method="POST"
+					enctype="multipart/form-data" action="/banner.txt">
+					File to upload: <input type="file" name="image" name="name"
+						role="button" /><br /> <input type="submit" value="Upload"
+						class="btn btn-lg btn-primary" role="button"> Press here
+					to upload the file!
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

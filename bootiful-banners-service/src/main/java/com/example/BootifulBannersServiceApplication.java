@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.Arrays;
 
-
 /**
  * I have made so many poor life decisions..
  *
@@ -30,63 +29,61 @@ import java.util.Arrays;
 @SpringBootApplication
 public class BootifulBannersServiceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(BootifulBannersServiceApplication.class, args);
-    }
+	public static void main(String[] args) {
+	SpringApplication.run(BootifulBannersServiceApplication.class, args);
+	}
 }
 
-//curl -F "image=@/Users/jlong/Desktop/doge.jpg" -H "Content-Type: multipart/form-data" http://bootiful-banners.cfapps.io/banners
+// curl -F "image=@/Users/jlong/Desktop/doge.jpg" -H "Content-Type: multipart/form-data"
+// http://bootiful-banners.cfapps.io/banners
 @RestController
 class BannerGeneratorRestController {
 
-    public static final String[] MEDIA_TYPES = {
-            MediaType.IMAGE_PNG_VALUE,
-            MediaType.IMAGE_JPEG_VALUE,
-            MediaType.IMAGE_GIF_VALUE};
+	public static final String[] MEDIA_TYPES = { MediaType.IMAGE_PNG_VALUE,
+		MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE };
 
-    @Autowired
-    private BannerProperties properties;
+	@Autowired
+	private BannerProperties properties;
 
-    @RequestMapping(
-            value = "/banner",
-            method = RequestMethod.POST,
-            produces = MediaType.TEXT_PLAIN_VALUE
-    )
-    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile) throws Exception {
-        File image = null;
-        try {
-            image = this.imageFileFrom(multipartFile);
-            ImageBanner imageBanner = new ImageBanner(image);
+	@RequestMapping(value = "/banner", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
+	ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile)
+		throws Exception {
+	File image = null;
+	try {
+		image = this.imageFileFrom(multipartFile);
+		ImageBanner imageBanner = new ImageBanner(image);
 
-            int maxWidth = this.properties.getMaxWidth();
-            double aspectRatio = this.properties.getAspectRatio();
-            boolean invert = this.properties.isInvert();
+		int maxWidth = this.properties.getMaxWidth();
+		double aspectRatio = this.properties.getAspectRatio();
+		boolean invert = this.properties.isInvert();
 
-            String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
+		String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
 
-            return ResponseEntity.ok()
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body(banner);
-        } finally {
-            if (image != null) {
-                if (image.exists())
-                    Assert.isTrue(image.delete(), String.format("couldn't delete temporary file %s",
-                            image.getPath()));
-            }
-        }
-    }
+		return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN)
+			.header("Content-Disposition", "attachment; filename=banner.txt;")
+			.body(banner);
+	}
+	finally {
+		if (image != null) {
+		if (image.exists())
+			Assert.isTrue(image.delete(), String.format(
+				"couldn't delete temporary file %s", image.getPath()));
+		}
+	}
+	}
 
-    private File imageFileFrom(MultipartFile file) throws Exception {
-        Assert.notNull(file);
-        Assert.isTrue(Arrays.asList(MEDIA_TYPES).contains(file.getContentType().toLowerCase()));
-        File tmp = File.createTempFile("banner-tmp-",
-                "." + file.getContentType().split("/")[1]);
-        try (InputStream i = new BufferedInputStream(file.getInputStream());
-             OutputStream o = new BufferedOutputStream(new FileOutputStream(tmp))) {
-            FileCopyUtils.copy(i, o);
-            return tmp;
-        }
-    }
+	private File imageFileFrom(MultipartFile file) throws Exception {
+	Assert.notNull(file);
+	Assert.isTrue(
+		Arrays.asList(MEDIA_TYPES).contains(file.getContentType().toLowerCase()));
+	File tmp = File.createTempFile("banner-tmp-",
+		"." + file.getContentType().split("/")[1]);
+	try (InputStream i = new BufferedInputStream(file.getInputStream());
+		OutputStream o = new BufferedOutputStream(new FileOutputStream(tmp))) {
+		FileCopyUtils.copy(i, o);
+		return tmp;
+	}
+	}
 }
 
 @Data
@@ -94,10 +91,10 @@ class BannerGeneratorRestController {
 @ConfigurationProperties(prefix = "banner")
 class BannerProperties {
 
-    private int maxWidth = 72;
+	private int maxWidth = 72;
 
-    private double aspectRatio = 0.5;
+	private double aspectRatio = 0.5;
 
-    private boolean invert;
+	private boolean invert;
 
 }

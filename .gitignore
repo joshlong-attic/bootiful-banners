@@ -1,0 +1,10 @@
+.idea
+*.iml
+classes
+target
+.classpath
+.project
+.settings/
+node
+node_modules
+etc
