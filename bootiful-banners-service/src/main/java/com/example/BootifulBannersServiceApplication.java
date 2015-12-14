@@ -2,10 +2,13 @@ package com.example;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ResourceBanner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -47,12 +50,16 @@ class BannerGeneratorRestController {
     @Autowired
     private BannerProperties properties;
 
+    @Autowired
+    private Environment env;
+
     @RequestMapping(
             value = "/banner",
             method = RequestMethod.POST,
             produces = MediaType.TEXT_PLAIN_VALUE
     )
-    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile) throws Exception {
+    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile,
+            @RequestParam(defaultValue = "false") boolean ansiOutput) throws Exception {
         File image = null;
         try {
             image = this.imageFileFrom(multipartFile);
@@ -63,6 +70,13 @@ class BannerGeneratorRestController {
             boolean invert = this.properties.isInvert();
 
             String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
+
+            if(ansiOutput == true) {
+                ResourceBanner resourceBanner = new ResourceBanner(new ByteArrayResource(banner.getBytes()));
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                resourceBanner.printBanner(env, getClass(), new PrintStream(out));
+                banner = out.toString();
+            }
 
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
