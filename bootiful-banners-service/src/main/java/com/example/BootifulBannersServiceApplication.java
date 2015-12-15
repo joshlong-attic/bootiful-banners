@@ -52,15 +52,24 @@ class BannerGeneratorRestController {
             method = RequestMethod.POST,
             produces = MediaType.TEXT_PLAIN_VALUE
     )
-    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile) throws Exception {
+    ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile,
+            @RequestParam(required = false) Integer maxWidth,
+            @RequestParam(required = false) Double aspectRatio,
+            @RequestParam(required = false) Boolean invert) throws Exception {
         File image = null;
         try {
             image = this.imageFileFrom(multipartFile);
             ImageBanner imageBanner = new ImageBanner(image);
 
-            int maxWidth = this.properties.getMaxWidth();
-            double aspectRatio = this.properties.getAspectRatio();
-            boolean invert = this.properties.isInvert();
+            if(maxWidth == null) {
+                maxWidth = this.properties.getMaxWidth();
+            }
+            if(aspectRatio == null) {
+                aspectRatio = this.properties.getAspectRatio();
+            }
+            if(invert == null) {
+                invert = this.properties.isInvert();
+            }
 
             String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
 
