@@ -3,9 +3,13 @@ package com.example;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.ansi.AnsiPropertySource;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertyResolver;
+import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -55,7 +59,8 @@ class BannerGeneratorRestController {
     ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile,
             @RequestParam(required = false) Integer maxWidth,
             @RequestParam(required = false) Double aspectRatio,
-            @RequestParam(required = false) Boolean invert) throws Exception {
+            @RequestParam(required = false) Boolean invert,
+            @RequestParam(defaultValue = "false") boolean ansiOutput) throws Exception {
         File image = null;
         try {
             image = this.imageFileFrom(multipartFile);
@@ -72,6 +77,13 @@ class BannerGeneratorRestController {
             }
 
             String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
+
+            if(ansiOutput == true) {
+                MutablePropertySources sources = new MutablePropertySources();
+                sources.addFirst(new AnsiPropertySource("ansi", true));
+                PropertyResolver ansiResolver = new PropertySourcesPropertyResolver(sources);
+                banner = ansiResolver.resolvePlaceholders(banner);
+            }
 
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
