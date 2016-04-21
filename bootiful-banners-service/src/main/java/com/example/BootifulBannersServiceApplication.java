@@ -87,6 +87,7 @@ class BannerGeneratorRestController {
 
 			return ResponseEntity.ok()
 					.contentType(MediaType.TEXT_PLAIN)
+					.header("Content-Disposition", "attachment; filename=banner.txt;")
 					.body(banner);
 		} finally {
 			if (image != null) {
