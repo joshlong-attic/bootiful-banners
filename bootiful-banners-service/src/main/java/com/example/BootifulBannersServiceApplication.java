@@ -1,15 +1,20 @@
 package com.example;
 
 import lombok.Data;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ImageBanner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.ansi.AnsiPropertySource;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -23,12 +28,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.Arrays;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * I have made so many poor life decisions..
  *
  * @author Josh Long
+ * @author Dave Syer
  */
 @EnableConfigurationProperties
 @SpringBootApplication
@@ -39,7 +47,7 @@ public class BootifulBannersServiceApplication {
 	}
 }
 
-//curl -F "image=@/Users/jlong/Desktop/doge.jpg" -H "Content-Type: multipart/form-data" http://bootiful-banners.cfapps.io/banners
+// curl  -F "image=@/Users/jlong/Desktop/doge.jpg" -H "Content-Type: multipart/form-data"  -F"invert=true"  http://localhost:8080/banner
 @RestController
 class BannerGeneratorRestController {
 
@@ -51,6 +59,10 @@ class BannerGeneratorRestController {
 	@Autowired
 	private BannerProperties properties;
 
+	@Autowired
+	private Environment environment;
+
+
 	@RequestMapping(
 			value = "/banner",
 			method = RequestMethod.POST,
@@ -58,27 +70,30 @@ class BannerGeneratorRestController {
 	)
 	ResponseEntity<String> banner(@RequestParam("image") MultipartFile multipartFile,
 	                              @RequestParam(required = false) Integer maxWidth,
-	                              @RequestParam(required = false) Double aspectRatio,
 	                              @RequestParam(required = false) Boolean invert,
 	                              @RequestParam(defaultValue = "false") boolean ansiOutput) throws Exception {
 		File image = null;
 		try {
 			image = this.imageFileFrom(multipartFile);
-			ImageBanner imageBanner = new ImageBanner(image);
+			ImageBanner imageBanner = new ImageBanner(new FileSystemResource(image));
 
-			if(maxWidth == null) {
+			if (maxWidth == null) {
 				maxWidth = this.properties.getMaxWidth();
 			}
-			if(aspectRatio == null) {
-				aspectRatio = this.properties.getAspectRatio();
-			}
-			if(invert == null) {
+
+			if (invert == null) {
 				invert = this.properties.isInvert();
 			}
 
-			String banner = imageBanner.printBanner(maxWidth, aspectRatio, invert);
+			String banner;
 
-			if(ansiOutput) {
+			try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			     PrintStream bannerWriter = new PrintStream(byteArrayOutputStream)) {
+				imageBanner.printBanner(this.environmentForImage(maxWidth, invert), null, bannerWriter);
+				banner = byteArrayOutputStream.toString();
+			}
+
+			if (ansiOutput) {
 				MutablePropertySources sources = new MutablePropertySources();
 				sources.addFirst(new AnsiPropertySource("ansi", true));
 				PropertyResolver ansiResolver = new PropertySourcesPropertyResolver(sources);
@@ -89,6 +104,7 @@ class BannerGeneratorRestController {
 					.contentType(MediaType.TEXT_PLAIN)
 					.header("Content-Disposition", "attachment; filename=banner.txt;")
 					.body(banner);
+
 		} finally {
 			if (image != null) {
 				if (image.exists())
@@ -96,6 +112,31 @@ class BannerGeneratorRestController {
 							image.getPath()));
 			}
 		}
+	}
+
+	private Environment environmentForImage(int maxWidth, boolean invert) {
+		Map<String, Object> specification = new HashMap<>();
+		specification.put("banner.image.width", maxWidth);
+		specification.put("banner.image.invert", invert);
+		ProxyFactoryBean proxyFactoryBean = new ProxyFactoryBean();
+		proxyFactoryBean.setInterfaces(Environment.class);
+		proxyFactoryBean.addAdvice((MethodInterceptor) invocation -> {
+			String containsProperty = "containsProperty";
+			String getProperty = "getProperty";
+			List<String> toHandle = Arrays.asList(containsProperty, getProperty);
+			String methodName = invocation.getMethod().getName();
+			if (toHandle.contains(methodName)) {
+				String key = String.class.cast(invocation.getArguments()[0]);
+				if (methodName.equals(containsProperty)) {
+					return (specification.containsKey(key) || this.environment.containsProperty(key));
+				}
+				if (methodName.equals(getProperty)) {
+					return specification.getOrDefault(key, this.environment.getProperty(key));
+				}
+			}
+			return invocation.getMethod().invoke(this.environment, invocation.getArguments());
+		});
+		return Environment.class.cast(proxyFactoryBean.getObject());
 	}
 
 	private File imageFileFrom(MultipartFile file) throws Exception {
@@ -117,8 +158,6 @@ class BannerGeneratorRestController {
 class BannerProperties {
 
 	private int maxWidth = 72;
-
-	private double aspectRatio = 0.5;
 
 	private boolean invert;
 
